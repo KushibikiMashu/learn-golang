@@ -1,3 +1,4 @@
 cmd
 models
-restapi
+/restapi/*
+!/restapi/configure_todo_list.go
