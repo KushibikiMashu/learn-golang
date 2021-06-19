@@ -2,6 +2,7 @@ import aspida from "@aspida/fetch"
 import api from '../api/$api'
 import {useEffect, useState} from "react";
 import {Item} from "../api/@types";
+import useSWR from "swr";
 
 const url = 'http://127.0.0.1:3002/'
 
@@ -10,42 +11,27 @@ const client = api(aspida(fetch, {baseURL: url}))
 const fetchAllTodo = async(
   {since = 0, limit = 20}:
     {since: number, limit: number}
-) => {
+): Promise<Item[]> => {
   return await client.$get({query: {since, limit}})
 }
 
 const useFetchTodos = () => {
-  const [todos, setTodos] = useState<Item[]>([])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<Error | null>(null)
+  const {data, error} = useSWR<Item[], Error>('/', () => fetchAllTodo({since: 0, limit: 20}))
 
-  useEffect(() => {
-    (async() => {
-      setLoading(true)
-      try {
-        const todos = await fetchAllTodo({since: 0, limit: 20})
-        setTodos(todos)
-      } catch (e) {
-        setError(e)
-      } finally {
-        setLoading(false)
-      }
-    })()
-  }, [])
-
-  return {todos, loading, error}
+  return {todos: data, error}
 }
 
 export default function Index() {
-  const {todos, loading, error } = useFetchTodos()
+  const {todos,  error } = useFetchTodos()
+
   const handleClick = async () => {}
 
-  if (loading) {
+  if (!todos) {
     return <div>loading</div>
   }
 
-  if (error !== null) {
-    return <div>error: {error.message}</div>
+  if (error) {
+    return <div>error: {String(error)}</div>
   }
 
   if (todos.length === 0) {
