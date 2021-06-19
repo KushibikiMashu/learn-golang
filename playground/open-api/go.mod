@@ -17,7 +17,7 @@ require (
 	github.com/go-swagger/go-swagger v0.27.0 // indirect
 	github.com/jessevdk/go-flags v1.5.0
 	github.com/mailru/easyjson v0.7.7 // indirect
-	github.com/rs/cors v1.7.0 // indirect
+	github.com/rs/cors v1.7.0
 	github.com/spf13/viper v1.8.0 // indirect
 	go.mongodb.org/mongo-driver v1.5.3 // indirect
 	golang.org/x/net v0.0.0-20210614182718-04defd469f4e
