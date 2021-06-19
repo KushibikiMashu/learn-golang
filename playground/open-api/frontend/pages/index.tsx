@@ -14,17 +14,16 @@ const fetchAllTodo = async(
   return await client.$get({query: {since, limit}})
 }
 
-export default function Index() {
+const useFetchTodos = () => {
   const [todos, setTodos] = useState<Item[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<Error | null>(null)
-  const handleClick = async () => {}
 
   useEffect(() => {
     (async() => {
       setLoading(true)
       try {
-        const todos = await fetchAllTodo({since: 0, limit: 5})
+        const todos = await fetchAllTodo({since: 0, limit: 20})
         setTodos(todos)
       } catch (e) {
         setError(e)
@@ -33,6 +32,13 @@ export default function Index() {
       }
     })()
   }, [])
+
+  return {todos, loading, error}
+}
+
+export default function Index() {
+  const {todos, loading, error } = useFetchTodos()
+  const handleClick = async () => {}
 
   if (loading) {
     return <div>loading</div>
