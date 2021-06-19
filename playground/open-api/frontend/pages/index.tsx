@@ -1,29 +1,27 @@
 import aspida from "@aspida/fetch"
 import api from '../api/$api'
-import {useEffect, useState} from "react";
 import {Item} from "../api/@types";
 import useSWR from "swr";
+import {Methods} from "../api";
 
 const url = 'http://127.0.0.1:3002/'
 
 const client = api(aspida(fetch, {baseURL: url}))
 
-const fetchAllTodo = async(
-  {since = 0, limit = 20}:
-    {since: number, limit: number}
-): Promise<Item[]> => {
-  return await client.$get({query: {since, limit}})
+type ApiQuery = Methods['get']['query']
+
+const fetchAllTodo = async(query: ApiQuery)=> {
+  return await client.$get({query})
 }
 
-const useFetchTodos = () => {
+const useFetchAllTodos = () => {
   const {data, error} = useSWR<Item[], Error>('/', () => fetchAllTodo({since: 0, limit: 20}))
 
   return {todos: data, error}
 }
 
 export default function Index() {
-  const {todos,  error } = useFetchTodos()
-
+  const {todos,  error} = useFetchAllTodos()
   const handleClick = async () => {}
 
   if (!todos) {
