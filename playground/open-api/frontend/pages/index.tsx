@@ -19,7 +19,6 @@ const fetchAllTodo = async(query: ApiQuery)=> {
 
 const useFetchAllTodos = () => {
   const {data = [], error} = useSWR<Todo[], Error>('/', () => fetchAllTodo({since: 0, limit: 20}))
-
   const todos = data.length === 0 ? data : data.sort((prev, next) => prev.id > next.id ? 1: -1)
 
   return {todos, error}
@@ -39,6 +38,14 @@ const addTodo = async (todos: Todo[]) => {
   await mutate('/')
 }
 
+const putTodoComplete = async (todos: Todo[], newTodo: Todo) => {
+  const id = newTodo.id
+
+  await mutate('/', todos.map(todo => todo.id === id ? newTodo : todo))
+  await client._id(id).put({body: {description: newTodo.description, completed: newTodo.completed}})
+  await mutate('/')
+}
+
 const deleteTodo = async (id: number, todos: Item[]) => {
   await client._id(id).delete()
 
@@ -51,7 +58,7 @@ export default function Index() {
   const {todos, error} = useFetchAllTodos()
   const handleAddClick = async () => await addTodo(todos)
   const handleDeleteClick = async (id: number) => await deleteTodo(id, todos)
-  const handleChange = async () => {}
+  const handleChange = async (todo: Todo) => await putTodoComplete(todos, todo)
 
   if (!todos) {
     return <div>loading</div>
@@ -78,7 +85,7 @@ export default function Index() {
       {todos.map((todo: Todo, i) => (
         <li style={{display: 'flex', justifyContent: 'space-between', width: 200, margin: '4px 0'}} key={i}>
           <span style={{width: 140}}>{todo.id}: {todo.description}</span>
-          <input type="checkbox" defaultChecked={false} checked={todo.completed ?? false} onChange={handleChange} />
+          <input type="checkbox" checked={!!todo.completed} onChange={() => handleChange({...todo, completed: !todo.completed})} />
           <button style={{marginLeft: 8}} onClick={() => handleDeleteClick(todo.id)}>×</button>
         </li>
       ))}
