@@ -51,6 +51,25 @@ func addItem(item *models.Item) error {
 	return nil
 }
 
+func updateItem(id int64, item *models.Item) (*models.Item, error) {
+	if item == nil {
+		return nil, errors.New(500, "item must be present")
+	}
+
+	itemsLock.Lock()
+	defer itemsLock.Unlock()
+
+	_, exists := items[id]
+	if !exists {
+		return nil, errors.NotFound("not found: item %d", id)
+	}
+
+	item.ID = id
+	items[id] = item
+
+	return items[id], nil
+}
+
 func allItems(since int64, limit int32) (result []*models.Item) {
 	result = make([]*models.Item, 0)
 	for id, item := range items {
@@ -102,6 +121,16 @@ func configureAPI(api *operations.TodoListAPI) http.Handler {
 			mergedParams.Limit = params.Limit
 		}
 		return todos.NewFindTodosOK().WithPayload(allItems(*mergedParams.Since, *mergedParams.Limit))
+	})
+
+	api.TodosUpdateOneHandler = todos.UpdateOneHandlerFunc(func(params todos.UpdateOneParams) middleware.Responder {
+		item, err := updateItem(params.ID, params.Body)
+
+		if err != nil {
+			return todos.NewUpdateOneDefault(404).WithPayload(&models.Error{Code: 404, Message: swag.String(err.Error())})
+		}
+
+		return todos.NewUpdateOneOK().WithPayload(item)
 	})
 
 	api.TodosDestroyOneHandler = todos.DestroyOneHandlerFunc(func(params todos.DestroyOneParams) middleware.Responder {
