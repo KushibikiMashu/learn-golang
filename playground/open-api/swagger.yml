@@ -7,6 +7,7 @@ info:
   version: 1.0.0
 produces:
 - application/io.goswagger.examples.todo-list.v1+json
+- application/json
 schemes:
 - http
 swagger: "2.0"
